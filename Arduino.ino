@@ -5,7 +5,7 @@
 #include <SoftwareSerial.h>
 
 #define DHTPIN 2     
-#define DHTTYPE DHT22 
+#define DHTTYPE DHT11 
 #define RELAYPIN 8
 
 // UART communication dengan ESP32
