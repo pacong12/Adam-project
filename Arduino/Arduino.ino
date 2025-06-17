@@ -26,9 +26,9 @@ struct BlynkSettings {
   int startMinute = 0;
   int endMinute = 0;
 } settings;
-int setHour = 8;
-int setMinute = 45;
-int setSecond = 0;
+// int setHour = 8;
+// int setMinute = 45;
+// int setSecond = 0;
 // Variabel sensor
 float currentTemp = 0;
 float currentHumidity = 0;
@@ -46,9 +46,13 @@ void setup() {
     Serial.println("RTC tidak ditemukan!");
     while (1);
   }
-  DateTime now = rtc.now();
-rtc.adjust(DateTime(now.year(), now.month(), now.day(), setHour, setMinute, setSecond));
+//   DateTime now = rtc.now();
+// rtc.adjust(DateTime(now.year(), now.month(), now.day(), setHour, setMinute, setSecond));
+  // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+
+
   // Inisialisasi LCD
+
   lcd.begin();
   lcd.backlight();
   showStartupMessage();
