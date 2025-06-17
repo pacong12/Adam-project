@@ -4,7 +4,7 @@
 /REFERENSI
 *.zip
 *.pdf
-
+*.docx
 # testing
 /coverage
 
