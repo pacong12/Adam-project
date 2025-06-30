@@ -91,4 +91,12 @@ Sensor DHT22, RTC, LCD, Relay
 Silakan buat pull request untuk kontribusi. Untuk perubahan besar, harap buka issue terlebih dahulu untuk mendiskusikan perubahan yang diinginkan.
 
 ## Lisensi
-[MIT](https://choosealicense.com/licenses/mit/) 
+[MIT](https://choosealicense.com/licenses/mit/)
+
+## Skema dan Wireframe
+
+### Skema Rangkaian
+![Skema Fan Automation](skema fan automation_bb.png)
+
+### Wireframe Aplikasi
+![Wireframe SmartFan Controller](Wireframe.png) 
