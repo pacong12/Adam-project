@@ -26,6 +26,11 @@ struct BlynkSettings {
   int startMinute = 0;
   int endMinute = 0;
 } settings;
+
+// Variabel untuk IP address ESP32
+String esp32IP = "0.0.0.0";
+bool showIP = false;
+unsigned long lastIPDisplay = 0;
 // int setHour = 8;
 // int setMinute = 45;
 // int setSecond = 0;
@@ -46,14 +51,14 @@ void setup() {
     Serial.println("RTC tidak ditemukan!");
     while (1);
   }
-//   DateTime now = rtc.now();
+  // DateTime now = rtc.now();
 // rtc.adjust(DateTime(now.year(), now.month(), now.day(), setHour, setMinute, setSecond));
   // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 
 
   // Inisialisasi LCD
 
-  lcd.begin();
+  lcd.init();
   lcd.backlight();
   showStartupMessage();
 
@@ -109,7 +114,11 @@ void handleESP32Request() {
     String request = espSerial.readStringUntil('\n');
     request.trim();
 
-    Serial.println("Request dari ESP32: " + request);
+    Serial.println("=== RECEIVED FROM ESP32 ===");
+    Serial.println("Raw request: '" + request + "'");
+    Serial.println("Length: " + String(request.length()));
+    Serial.println("==========================");
+    
     processRequest(request);
   }
 }
@@ -201,6 +210,21 @@ void handleSetCommand(String command) {
     
   } else if (cmd == "SET_SCHEDULE") {
     success = parseSchedule(value);
+  } else if (cmd == "SET_IP") {
+    esp32IP = value;
+    success = true;
+    Serial.println("ESP32 IP set to: " + esp32IP);
+    
+    // Show IP on LCD for 3 seconds
+    showIP = true;
+    lastIPDisplay = millis();
+    displayIPAddress();
+    
+    // Debug: Print to Serial Monitor
+    Serial.println("=== IP DISPLAY ACTIVATED ===");
+    Serial.println("IP Address: " + esp32IP);
+    Serial.println("Display will show for 3 seconds");
+    Serial.println("=============================");
   }
 
   if (success) {
@@ -262,10 +286,17 @@ void controlFan() {
   bool shouldTurnOn = false;
 
   if (settings.manualMode) {
-    // Mode manual
+    // Mode manual - override semua kondisi
     shouldTurnOn = settings.manualFanState;
+    
+    // Debug info untuk mode manual
+    static unsigned long lastDebug = 0;
+    if (millis() - lastDebug > 30000) {
+      lastDebug = millis();
+      Serial.println("Manual mode - Fan: " + String(shouldTurnOn ? "ON" : "OFF"));
+    }
   } else {
-    // Mode otomatis
+    // Mode otomatis - semua kondisi harus terpenuhi
     DateTime now = rtc.now();
     int currentMinutes = now.hour() * 60 + now.minute();
     int startMinutes = settings.startHour * 60 + settings.startMinute;
@@ -275,7 +306,7 @@ void controlFan() {
     bool tempOK = (currentTemp != -999 && currentTemp > settings.tempThreshold);
     bool humidOK = (currentHumidity != -999 && currentHumidity > settings.humidityThreshold);
 
-    shouldTurnOn = timeOK && tempOK && humidOK;
+    shouldTurnOn = timeOK && tempOK && humidOK; // Semua kondisi harus terpenuhi
     
     // Debug info (print every 30 seconds)
     static unsigned long lastDebug = 0;
@@ -301,6 +332,15 @@ void controlFan() {
 }
 
 void updateDisplay() {
+  // Check if we should show IP address
+  if (showIP && (millis() - lastIPDisplay < 3000)) {
+    displayIPAddress();
+    return;
+  } else if (showIP) {
+    showIP = false; // Stop showing IP after 3 seconds
+
+  }
+  
   DateTime now = rtc.now();
 
   // Baris 1: Suhu dan status
@@ -336,6 +376,16 @@ void updateDisplay() {
   lcd.print(":");
   if (now.minute() < 10) lcd.print("0");
   lcd.print(now.minute());
+}
+
+void displayIPAddress() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("ESP32 IP:");
+  lcd.setCursor(0, 1);
+  lcd.print(esp32IP);
+  delay(7000);
+  lcd.clear();
 }
 
 void showStartupMessage() {

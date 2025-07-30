@@ -127,6 +127,20 @@ void connectWiFi() {
       Serial.print(WiFi.RSSI());
       Serial.println(" dBm");
       wifiConfigured = true;
+      
+      // Send IP address to Arduino for LCD display
+      delay(1000); // Wait for Arduino to be ready
+      String ipCommand = "SET_IP|" + WiFi.localIP().toString();
+      ArduinoSerial.println(ipCommand);
+      Serial.println("Sent IP to Arduino: " + ipCommand);
+      
+      // Send multiple times to ensure Arduino receives it
+      for (int i = 0; i < 3; i++) {
+        delay(500);
+        ArduinoSerial.println(ipCommand);
+        Serial.println("Resent IP to Arduino (attempt " + String(i+2) + "): " + ipCommand);
+      }
+      
       return;
     }
   }
@@ -182,6 +196,7 @@ void setupServer() {
   server.on("/reset_wifi", HTTP_POST, handleResetWiFi);
   server.on("/wifi_info", HTTP_GET, handleWiFiInfo);
   server.on("/setup_wifi", HTTP_POST, handleSetupWiFi);
+  server.on("/ping", HTTP_GET, handlePing); // New endpoint for auto-detection
   
   // Handle 404
   server.onNotFound(handleNotFound);
@@ -665,16 +680,29 @@ void handleSetupWiFi() {
     attempts++;
   }
   
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\nWiFi connected successfully!");
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
-    Serial.print("SSID: ");
-    Serial.println(WiFi.SSID());
-    Serial.print("RSSI: ");
-    Serial.println(WiFi.RSSI());
-    
-    wifiConfigured = true;
+      if (WiFi.status() == WL_CONNECTED) {
+      Serial.println("\nWiFi connected successfully!");
+      Serial.print("IP Address: ");
+      Serial.println(WiFi.localIP());
+      Serial.print("SSID: ");
+      Serial.println(WiFi.SSID());
+      Serial.print("RSSI: ");
+      Serial.println(WiFi.RSSI());
+      
+      wifiConfigured = true;
+      
+      // Send IP address to Arduino for LCD display
+      delay(1000); // Wait for Arduino to be ready
+      String ipCommand = "SET_IP|" + WiFi.localIP().toString();
+      ArduinoSerial.println(ipCommand);
+      Serial.println("Sent IP to Arduino: " + ipCommand);
+      
+      // Send multiple times to ensure Arduino receives it
+      for (int i = 0; i < 3; i++) {
+        delay(500);
+        ArduinoSerial.println(ipCommand);
+        Serial.println("Resent IP to Arduino (attempt " + String(i+2) + "): " + ipCommand);
+      }
     
     String response = "{";
     response += "\"status\":\"OK\",";
@@ -715,6 +743,18 @@ void handleWiFiInfo() {
   json += "\"ip\":\"" + WiFi.localIP().toString() + "\",";
   json += "\"rssi\":" + String(WiFi.RSSI()) + ",";
   json += "\"status\":\"" + String(WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected") + "\"";
+  json += "}";
+  
+  server.send(200, "application/json", json);
+}
+
+void handlePing() {
+  // Lightweight endpoint for auto-detection
+  String json = "{";
+  json += "\"status\":\"OK\",";
+  json += "\"device\":\"ESP32_FanAutomation\",";
+  json += "\"ip\":\"" + WiFi.localIP().toString() + "\",";
+  json += "\"uptime\":" + String(millis() / 1000);
   json += "}";
   
   server.send(200, "application/json", json);

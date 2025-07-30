@@ -96,7 +96,7 @@ Silakan buat pull request untuk kontribusi. Untuk perubahan besar, harap buka is
 ## Skema dan Wireframe
 
 ### Skema Rangkaian
-![Skema Fan Automation](skema fan automation_bb.png)
+![Skema Fan Automation](skema_fan_automation_bb.png)
 
 ### Wireframe Aplikasi
 ![Wireframe SmartFan Controller](Wireframe.png) 
